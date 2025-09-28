@@ -1,14 +1,19 @@
 import express from 'express'
-import { recipesRoutes } from './routes/recipes.js'
 import bodyParser from 'body-parser'
 import cors from 'cors'
+import { recipeRoutes } from './routes/recipes.js'
+import { userRoutes } from './routes/users.js'
 
 const app = express()
+
 app.use(bodyParser.json())
 app.use(cors())
-recipesRoutes(app)
+
+recipeRoutes(app)
+userRoutes(app)
 
 app.get('/', (req, res) => {
-  res.send('Hello from Express!')
+  res.send('Hello from Recipe API!')
 })
+
 export { app }
