@@ -6,8 +6,7 @@ import { createRecipe } from '../api/recipes.js'
 export function CreateRecipe() {
   const [title, setTitle] = useState('')
   const [ingredients, setIngredients] = useState('')
-  const [instructions, setInstructions] = useState('')
-  const [tags, setTags] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
   const [token] = useAuth()
 
   const queryClient = useQueryClient()
@@ -16,8 +15,7 @@ export function CreateRecipe() {
       createRecipe(token, {
         title,
         ingredients: ingredients.split(',').map((i) => i.trim()),
-        instructions,
-        tags: tags.split(',').map((t) => t.trim()),
+        imageUrl,
       }),
     onSuccess: () => queryClient.invalidateQueries(['recipes']),
   })
@@ -54,23 +52,13 @@ export function CreateRecipe() {
       </div>
       <br />
       <div>
-        <label htmlFor='create-instructions'>Instructions: </label>
-        <textarea
-          name='create-instructions'
-          id='create-instructions'
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-        />
-      </div>
-      <br />
-      <div>
-        <label htmlFor='create-tags'>Tags (comma-separated): </label>
+        <label htmlFor='create-imageUrl'>Image URL: </label>
         <input
           type='text'
-          name='create-tags'
-          id='create-tags'
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
+          name='create-imageUrl'
+          id='create-imageUrl'
+          value={imageUrl}
+          onChange={(e) => setImageUrl(e.target.value)}
         />
       </div>
       <br />

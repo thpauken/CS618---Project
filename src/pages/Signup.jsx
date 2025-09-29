@@ -1,4 +1,3 @@
-// src/pages/Signup.jsx
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate, Link } from 'react-router-dom'
@@ -11,7 +10,7 @@ export function Signup() {
 
   const signupMutation = useMutation({
     mutationFn: () => signup({ username, password }),
-    onSuccess: () => navigate('/login'), // 🚨 will create Login page soon
+    onSuccess: () => navigate('/login'),
     onError: () => alert('failed to sign up!'),
   })
 

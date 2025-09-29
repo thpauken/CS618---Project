@@ -1,33 +1,36 @@
-// src/components/Recipe.jsx
-
 import PropTypes from 'prop-types'
 import { User } from './User.jsx'
 import { useAuth } from '../contexts/AuthContext.jsx'
-import { deleteRecipe as deleteRecipeApi } from '../api/recipes.js'
+import {
+  deleteRecipe as deleteRecipeApi,
+  updateRecipe as updateRecipeApi,
+} from '../api/recipes.js'
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { EditRecipeForm } from './EditRecipeForm.jsx'
 
 export function Recipe({
   _id,
   title,
   ingredients,
-  instructions,
-  tags,
+  imageUrl,
   author,
   onDelete,
 }) {
   const [token] = useAuth()
   const [deleting, setDeleting] = useState(false)
-  // Support author as string or object
+  const [editing, setEditing] = useState(false)
   const authorId = typeof author === 'string' ? author : author?._id
   const username = typeof author === 'object' && author?.username
-  // Try to get userId from JWT (if you store it in token)
+  const queryClient = useQueryClient()
   let userId = null
+
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
       userId = payload.sub
     } catch (e) {
-      /* ignore */
+      // ignore invalid token
     }
   }
 
@@ -44,10 +47,30 @@ export function Recipe({
     }
   }
 
+  if (editing) {
+    return (
+      <EditRecipeForm
+        recipe={{ _id, title, ingredients, imageUrl }}
+        onSave={async (updated) => {
+          await updateRecipeApi(token, _id, updated)
+          setEditing(false)
+          queryClient.invalidateQueries(['recipes'])
+        }}
+        onCancel={() => setEditing(false)}
+      />
+    )
+  }
+
   return (
     <article>
       <h3>{title}</h3>
-      {instructions && <div>{instructions}</div>}
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={title}
+          style={{ maxWidth: '100%', maxHeight: 300 }}
+        />
+      )}
 
       {ingredients?.length > 0 && (
         <ul>
@@ -57,12 +80,6 @@ export function Recipe({
         </ul>
       )}
 
-      {tags?.length > 0 && (
-        <p>
-          <strong>Tags:</strong> {tags.join(', ')}
-        </p>
-      )}
-
       {author && (
         <em>
           <br />
@@ -70,15 +87,22 @@ export function Recipe({
         </em>
       )}
 
-      {/* Show delete button if logged in user is the author */}
       {userId && authorId && userId === authorId && (
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          style={{ marginTop: 8 }}
-        >
-          {deleting ? 'Deleting...' : 'Delete'}
-        </button>
+        <>
+          <button
+            onClick={() => setEditing(true)}
+            style={{ marginTop: 8, marginRight: 8 }}
+          >
+            Edit
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            style={{ marginTop: 8 }}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </>
       )}
     </article>
   )
@@ -87,9 +111,8 @@ export function Recipe({
 Recipe.propTypes = {
   _id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  instructions: PropTypes.string,
   ingredients: PropTypes.arrayOf(PropTypes.string),
-  tags: PropTypes.arrayOf(PropTypes.string),
+  imageUrl: PropTypes.string,
   author: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.shape({

@@ -1,3 +1,22 @@
+export const updateRecipe = async (token, recipeId, recipe) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/recipes/${recipeId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: recipe.title,
+        ingredients: recipe.ingredients,
+        imageUrl: recipe.imageUrl,
+      }),
+    },
+  )
+  if (!res.ok) throw new Error('Failed to update recipe')
+  return await res.json()
+}
 export const getRecipes = async (queryParams) => {
   const res = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}/recipes?` +
@@ -11,9 +30,13 @@ export const createRecipe = async (token, recipe) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`, //
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(recipe),
+    body: JSON.stringify({
+      title: recipe.title,
+      ingredients: recipe.ingredients,
+      imageUrl: recipe.imageUrl,
+    }),
   })
   return await res.json()
 }

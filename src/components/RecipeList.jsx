@@ -9,7 +9,6 @@ export function RecipeList({ recipes = [] }) {
     setLocalRecipes((prev) => prev.filter((r) => r._id !== id))
   }
 
-  // Update localRecipes if recipes prop changes
   React.useEffect(() => {
     setLocalRecipes(recipes)
   }, [recipes])
@@ -18,7 +17,14 @@ export function RecipeList({ recipes = [] }) {
     <div>
       {localRecipes.map((recipe) => (
         <Fragment key={recipe._id || recipe.title}>
-          <Recipe {...recipe} onDelete={handleDelete} />
+          <Recipe
+            _id={recipe._id}
+            title={recipe.title}
+            ingredients={recipe.ingredients}
+            imageUrl={recipe.imageUrl}
+            author={recipe.author}
+            onDelete={handleDelete}
+          />
           <hr />
         </Fragment>
       ))}

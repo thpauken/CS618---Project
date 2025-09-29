@@ -1,8 +1,6 @@
-// backend/src/routes/recipes.js
 import {
   listAllRecipes,
   listRecipesByAuthor,
-  listRecipesByTag,
   createRecipe,
   updateRecipe,
   deleteRecipe,
@@ -12,19 +10,12 @@ import {
 import { requireAuth } from '../middleware/jwt.js'
 
 export function recipeRoutes(app) {
-  // GET all recipes (with optional filters: author or tag)
   app.get('/api/v1/recipes', async (req, res) => {
-    const { sortBy, sortOrder, author, tag } = req.query
+    const { sortBy, sortOrder, author } = req.query
     const options = { sortBy, sortOrder }
     try {
-      if (author && tag) {
-        return res
-          .status(400)
-          .json({ error: 'query by either author or tag, not both' })
-      } else if (author) {
+      if (author) {
         return res.json(await listRecipesByAuthor(author, options))
-      } else if (tag) {
-        return res.json(await listRecipesByTag(tag, options))
       } else {
         return res.json(await listAllRecipes(options))
       }
@@ -34,7 +25,6 @@ export function recipeRoutes(app) {
     }
   })
 
-  // GET recipe by ID
   app.get('/api/v1/recipes/:id', async (req, res) => {
     const { id } = req.params
     try {
@@ -47,7 +37,6 @@ export function recipeRoutes(app) {
     }
   })
 
-  // POST create recipe (auth required)
   app.post('/api/v1/recipes', requireAuth, async (req, res) => {
     try {
       const recipe = await createRecipe(req.auth.sub, req.body)
@@ -58,7 +47,6 @@ export function recipeRoutes(app) {
     }
   })
 
-  // PATCH update recipe (auth required)
   app.patch('/api/v1/recipes/:id', requireAuth, async (req, res) => {
     try {
       const recipe = await updateRecipe(req.auth.sub, req.params.id, req.body)

@@ -1,11 +1,9 @@
-// backend/tests/recipes.test.js
 import mongoose from 'mongoose'
 import { describe, expect, test, beforeEach, beforeAll } from '@jest/globals'
 import {
   createRecipe,
   listAllRecipes,
   listRecipesByAuthor,
-  listRecipesByTag,
   getRecipeById,
   updateRecipe,
   deleteRecipe,
@@ -24,22 +22,19 @@ beforeAll(async () => {
       title: 'Spaghetti Bolognese',
       author: testUser._id,
       ingredients: ['spaghetti', 'ground beef', 'tomato sauce'],
-      instructions: 'Cook spaghetti, make sauce, combine.',
-      tags: ['pasta', 'italian'],
+      imageUrl: 'https://example.com/spaghetti.jpg',
     },
     {
       title: 'Vegetable Stir Fry',
       author: testUser._id,
       ingredients: ['broccoli', 'carrot', 'soy sauce'],
-      instructions: 'Stir fry vegetables with soy sauce.',
-      tags: ['vegan', 'asian'],
+      imageUrl: 'https://example.com/stirfry.jpg',
     },
     {
       title: 'Chicken Curry',
       author: testUser._id,
       ingredients: ['chicken', 'curry powder', 'coconut milk'],
-      instructions: 'Cook chicken, add curry powder and coconut milk.',
-      tags: ['indian', 'spicy'],
+      imageUrl: 'https://example.com/curry.jpg',
     },
   ]
 })
@@ -57,11 +52,9 @@ beforeEach(async () => {
 describe('getting a recipe', () => {
   test('should return the full recipe', async () => {
     const recipe = await getRecipeById(createdSampleRecipes[0]._id)
-    // The author is now populated as an object with _id and username
     expect(recipe.title).toEqual(createdSampleRecipes[0].title)
     expect(recipe.ingredients).toEqual(createdSampleRecipes[0].ingredients)
-    expect(recipe.instructions).toEqual(createdSampleRecipes[0].instructions)
-    expect(recipe.tags).toEqual(createdSampleRecipes[0].tags)
+    expect(recipe.imageUrl).toEqual(createdSampleRecipes[0].imageUrl)
     const authorObj =
       recipe.author && recipe.author.toObject
         ? recipe.author.toObject()
@@ -83,21 +76,21 @@ describe('getting a recipe', () => {
 describe('updating recipes', () => {
   test('should update the specified property', async () => {
     await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
-      instructions: 'new cooking instructions',
+      imageUrl: 'https://example.com/newimage.jpg',
     })
     const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
-    expect(updatedRecipe.instructions).toEqual('new cooking instructions')
+    expect(updatedRecipe.imageUrl).toEqual('https://example.com/newimage.jpg')
   })
   test('should not update other properties', async () => {
     await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
-      instructions: 'new cooking instructions',
+      imageUrl: 'https://example.com/newimage.jpg',
     })
     const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
     expect(updatedRecipe.title).toEqual('Spaghetti Bolognese')
   })
   test('should update the updatedAt timestamp', async () => {
     await updateRecipe(testUser._id, createdSampleRecipes[0]._id, {
-      instructions: 'new cooking instructions',
+      imageUrl: 'https://example.com/newimage.jpg',
     })
     const updatedRecipe = await Recipe.findById(createdSampleRecipes[0]._id)
     expect(updatedRecipe.updatedAt.getTime()).toBeGreaterThan(
@@ -109,7 +102,7 @@ describe('updating recipes', () => {
       testUser._id,
       '000000000000000000000000',
       {
-        instructions: 'new cooking instructions',
+        imageUrl: 'https://example.com/newimage.jpg',
       },
     )
     expect(recipe).toEqual(null)
@@ -136,7 +129,6 @@ describe('listing recipes', () => {
   })
   test('should return recipes sorted by creation date descending by default', async () => {
     const recipes = await listAllRecipes()
-    // Sort both arrays by createdAt descending
     const recipesSorted = [...recipes].sort((a, b) => b.createdAt - a.createdAt)
     const expectedSorted = [...createdSampleRecipes].sort(
       (a, b) => b.createdAt - a.createdAt,
@@ -161,14 +153,6 @@ describe('listing recipes', () => {
     const recipes = await listRecipesByAuthor(testUser.username)
     expect(recipes.length).toBe(3)
   })
-  test('should be able to filter recipes by tag', async () => {
-    const recipes = await listRecipesByTag('spicy')
-    // The only recipe with 'spicy' tag is 'Chicken Curry'
-    expect(recipes.length).toBe(1)
-    expect(recipes[0].title).toBe('Chicken Curry')
-    expect(Array.isArray(recipes[0].tags)).toBe(true)
-    expect(recipes[0].tags).toContain('spicy')
-  })
 })
 
 describe('creating recipes', () => {
@@ -176,24 +160,21 @@ describe('creating recipes', () => {
     const recipe = {
       title: 'Pancakes',
       ingredients: ['flour', 'milk', 'egg'],
-      instructions: 'Mix ingredients and cook on a griddle.',
-      tags: ['breakfast'],
+      imageUrl: 'https://example.com/pancakes.jpg',
     }
     const createdRecipe = await createRecipe(testUser._id, recipe)
     expect(createdRecipe._id).toBeInstanceOf(mongoose.Types.ObjectId)
     const foundRecipe = await Recipe.findById(createdRecipe._id)
     expect(foundRecipe.title).toBe(recipe.title)
     expect(foundRecipe.ingredients).toEqual(recipe.ingredients)
-    expect(foundRecipe.instructions).toBe(recipe.instructions)
-    expect(foundRecipe.tags).toEqual(recipe.tags)
+    expect(foundRecipe.imageUrl).toBe(recipe.imageUrl)
     expect(foundRecipe.createdAt).toBeInstanceOf(Date)
     expect(foundRecipe.updatedAt).toBeInstanceOf(Date)
   })
   test('without title should fail', async () => {
     const recipe = {
       ingredients: ['something'],
-      instructions: 'Recipe with no title',
-      tags: ['empty'],
+      imageUrl: 'https://example.com/empty.jpg',
     }
     try {
       await createRecipe(testUser._id, recipe)
