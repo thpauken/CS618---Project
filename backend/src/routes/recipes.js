@@ -5,11 +5,22 @@ import {
   updateRecipe,
   deleteRecipe,
   getRecipeById,
+  likeRecipe,
 } from '../services/recipes.js'
 
 import { requireAuth } from '../middleware/jwt.js'
 
 export function recipeRoutes(app) {
+  app.post('/api/v1/recipes/:id/like', requireAuth, async (req, res) => {
+    try {
+      const recipe = await likeRecipe(req.auth.sub, req.params.id)
+      if (!recipe) return res.sendStatus(404)
+      return res.json(recipe)
+    } catch (err) {
+      console.error('error liking recipe', err)
+      return res.status(500).end()
+    }
+  })
   app.get('/api/v1/recipes', async (req, res) => {
     const { sortBy, sortOrder, author } = req.query
     const options = { sortBy, sortOrder }

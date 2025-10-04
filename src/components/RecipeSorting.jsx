@@ -7,6 +7,7 @@ export function RecipeSorting({
   orderValue,
   onOrderChange,
 }) {
+  console.log('RecipeSorting fields:', fields)
   return (
     <div>
       <label htmlFor='sortBy'>Sort By: </label>

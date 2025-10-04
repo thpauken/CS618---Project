@@ -2,10 +2,30 @@ import { Recipe } from '../db/models/recipe.js'
 import { User } from '../db/models/user.js'
 
 export async function listAllRecipes(options = {}) {
-  const sort = options.sortBy
-    ? { [options.sortBy]: options.sortOrder === 'ascending' ? 1 : -1 }
-    : { createdAt: -1 }
+  let sort = { createdAt: -1 }
+  if (options.sortBy === 'likes') {
+    sort = { likes: -1 }
+  } else if (options.sortBy) {
+    sort = { [options.sortBy]: options.sortOrder === 'ascending' ? 1 : -1 }
+  }
   return await Recipe.find().sort(sort).populate('author', 'username')
+}
+
+export async function likeRecipe(userId, recipeId) {
+  const recipe = await Recipe.findById(recipeId)
+  if (!recipe) return null
+  const hasLiked = recipe.likes.some(
+    (id) => id.toString() === userId.toString(),
+  )
+  if (hasLiked) {
+    recipe.likes = recipe.likes.filter(
+      (id) => id.toString() !== userId.toString(),
+    )
+  } else {
+    recipe.likes.push(userId)
+  }
+  await recipe.save()
+  return recipe
 }
 
 export async function listRecipesByAuthor(authorUsername, options = {}) {

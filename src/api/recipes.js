@@ -1,3 +1,16 @@
+export const likeRecipe = async (token, recipeId) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/recipes/${recipeId}/like`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  )
+  if (!res.ok) throw new Error('Failed to like recipe')
+  return await res.json()
+}
 export const updateRecipe = async (token, recipeId, recipe) => {
   const res = await fetch(
     `${import.meta.env.VITE_BACKEND_URL}/recipes/${recipeId}`,

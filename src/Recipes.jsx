@@ -31,14 +31,14 @@ export function Recipes() {
       />
       <br />
       <RecipeSorting
-        fields={['createdAt', 'updatedAt']}
+        fields={['createdAt', 'updatedAt', 'likes']}
         value={sortBy}
         onChange={(value) => setSortBy(value)}
         orderValue={sortOrder}
         onOrderChange={(orderValue) => setSortOrder(orderValue)}
       />
       <hr />
-      <RecipeList recipes={recipes} />
+      <RecipeList recipes={recipes} sortBy={sortBy} sortOrder={sortOrder} />
     </div>
   )
 }

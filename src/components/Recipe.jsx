@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext.jsx'
 import {
   deleteRecipe as deleteRecipeApi,
   updateRecipe as updateRecipeApi,
+  likeRecipe as likeRecipeApi,
 } from '../api/recipes.js'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -15,22 +16,41 @@ export function Recipe({
   ingredients,
   imageUrl,
   author,
+  likes = [],
   onDelete,
 }) {
   const [token] = useAuth()
-  const [deleting, setDeleting] = useState(false)
-  const [editing, setEditing] = useState(false)
-  const authorId = typeof author === 'string' ? author : author?._id
-  const username = typeof author === 'object' && author?.username
-  const queryClient = useQueryClient()
   let userId = null
-
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
       userId = payload.sub
     } catch (e) {
       // ignore invalid token
+    }
+  }
+  const [deleting, setDeleting] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const authorId = typeof author === 'string' ? author : author?._id
+  const username = typeof author === 'object' && author?.username
+  const [likeCount, setLikeCount] = useState(likes.length)
+  const [liked, setLiked] = useState(
+    userId ? likes.some((id) => id === userId) : false,
+  )
+  const [liking, setLiking] = useState(false)
+  const queryClient = useQueryClient()
+  const handleLike = async () => {
+    if (!token) return
+    setLiking(true)
+    try {
+      const updated = await likeRecipeApi(token, _id)
+      setLikeCount(updated.likes.length)
+      setLiked(updated.likes.some((id) => id === userId))
+      queryClient.invalidateQueries(['recipes'])
+    } catch (err) {
+      alert('Failed to like recipe')
+    } finally {
+      setLiking(false)
     }
   }
 
@@ -80,6 +100,19 @@ export function Recipe({
         </ul>
       )}
 
+      <div style={{ marginTop: 8 }}>
+        <span>Likes: {likeCount}</span>
+        {token && (
+          <button
+            onClick={handleLike}
+            disabled={liking}
+            style={{ marginLeft: 8 }}
+          >
+            {liked ? 'Unlike' : 'Like'}
+          </button>
+        )}
+      </div>
+
       {author && (
         <em>
           <br />
@@ -120,5 +153,6 @@ Recipe.propTypes = {
       username: PropTypes.string,
     }),
   ]),
+  likes: PropTypes.arrayOf(PropTypes.string),
   onDelete: PropTypes.func,
 }
